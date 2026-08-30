@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你刷牙了嗎？</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    min-height:100vh;
+    background:linear-gradient(180deg,#e8f5e9 0%,#c8e6c9 35%,#a5d6a7 65%,#81c784 100%);
+    font-family:'Nunito','Noto Sans TC',sans-serif;
+    display:flex;flex-direction:column;align-items:center;
+    padding:28px 16px 90px;overflow-x:hidden;position:relative;
+  }
+  .bg-leaf{position:fixed;opacity:0.14;pointer-events:none;z-index:0;animation:floatLeaf linear infinite;}
+  @keyframes floatLeaf{
+    0%{transform:translateY(-60px) rotate(0deg);opacity:0;}
+    8%{opacity:0.14;}92%{opacity:0.14;}
+    100%{transform:translateY(105vh) rotate(360deg);opacity:0;}
+  }
+  .content{position:relative;z-index:1;width:100%;max-width:1050px;}
+  .header{text-align:center;margin-bottom:8px;}
+  .header h1{
+    font-size:2.6rem;font-weight:900;color:#2e7d32;
+    text-shadow:0 2px 8px rgba(46,125,50,0.15);
+    display:inline-flex;align-items:flex-end;gap:2px;line-height:1.7;
+  }
+  .rc{display:inline-flex;flex-direction:row;align-items:flex-end;position:relative;}
+  .rc .zy{
+    font-size:0.45rem;color:#558b2f;font-weight:700;
+    writing-mode:vertical-rl;text-orientation:upright;
+    letter-spacing:-1px;line-height:1;
+    margin-left:-2px;margin-right:1px;
+    align-self:center;
+  }
+  .rc .ch{line-height:1.2;}
+  .header .sub{font-size:0.95rem;color:#558b2f;margin-top:4px;font-weight:600;}
+  .counter-wrap{text-align:center;margin-bottom:18px;}
+  .counter{
+    font-size:1.1rem;color:#33691e;font-weight:800;
+    background:rgba(255,255,255,0.55);display:inline-block;
+    padding:6px 26px;border-radius:30px;box-shadow:0 2px 10px rgba(0,0,0,0.06);
+  }
+  .progress-wrap{
+    width:100%;max-width:480px;margin:0 auto 30px;
+    background:rgba(255,255,255,0.5);border-radius:20px;height:16px;
+    overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,0.08);
+  }
+  .progress-fill{
+    height:100%;background:linear-gradient(90deg,#66bb6a,#43a047,#2e7d32);
+    border-radius:20px;transition:width .5s cubic-bezier(.4,0,.2,1);position:relative;
+  }
+  .progress-fill::after{content:'🌱';position:absolute;right:-6px;top:-5px;font-size:1.2rem;}
+  .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:16px 10px;width:100%;}
+  @media(max-width:880px){.grid{grid-template-columns:repeat(5,1fr);gap:14px 8px;}.header h1{font-size:2rem;}}
+  @media(max-width:520px){.grid{grid-template-columns:repeat(4,1fr);gap:12px 4px;}.header h1{font-size:1.4rem;}.header h1 .zy{font-size:0.5rem;}}
+
+  .cell{display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;}
+  .pw{position:relative;width:80px;height:120px;display:flex;align-items:flex-end;justify-content:center;}
+  .ps{width:72px;height:112px;filter:drop-shadow(0 3px 5px rgba(0,0,0,0.18));transition:transform .3s,filter .3s;}
+  .cell .ps{animation:sway 2.8s ease-in-out infinite;}
+  @keyframes sway{0%,100%{transform:rotate(-2deg) translateY(0);}30%{transform:rotate(1.5deg) translateY(-4px);}60%{transform:rotate(-1.5deg) translateY(-1px);}}
+  .cell:nth-child(2n) .ps{animation-delay:-.4s;}
+  .cell:nth-child(3n) .ps{animation-delay:-1.1s;}
+  .cell:nth-child(5n) .ps{animation-delay:-1.8s;}
+  .cell:nth-child(7n) .ps{animation-delay:-1.5s;}
+  .cell:nth-child(11n) .ps{animation-delay:-.7s;}
+  .cell:hover .ps{filter:drop-shadow(0 6px 14px rgba(0,0,0,0.28)) brightness(1.06);transform:scale(1.12) translateY(-6px);animation:none;}
+  .cell:active .ps{transform:scale(.88);animation:none;}
+  .cell.not-done .ps{opacity:.45;filter:saturate(.2) drop-shadow(0 3px 5px rgba(0,0,0,0.1));}
+  .cell.not-done:hover .ps{opacity:.65;filter:saturate(.4) drop-shadow(0 4px 10px rgba(0,0,0,0.18));}
+  .cell.done .ps{opacity:1;}
+  .cn{font-size:.72rem;font-weight:800;color:#fff;background:rgba(0,0,0,.2);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:2;}
+  .cs{font-size:.75rem;font-weight:700;margin-top:1px;text-align:center;transition:color .3s;}
+  .cs.not-done{color:#c62828;}.cs.done{color:#2e7d32;}
+  @keyframes bounce{0%{transform:scale(1);}25%{transform:scale(1.18) translateY(-14px);}50%{transform:scale(.92) translateY(0);}75%{transform:scale(1.05) translateY(-4px);}100%{transform:scale(1) translateY(0);}}
+  .cell.bounce .ps{animation:bounce .5s ease !important;}
+  .la{transform-origin:50% 100%;animation:lw 2.2s ease-in-out infinite;}
+  @keyframes lw{0%,100%{transform:rotate(-12deg);}50%{transform:rotate(12deg);}}
+  #cc{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;}
+  .wr{position:fixed;bottom:6px;left:0;width:100%;height:55px;pointer-events:none;z-index:2;overflow:hidden;}
+  .wk{position:absolute;bottom:0;animation:wa linear infinite;}
+  .wk svg{animation:hop .45s ease-in-out infinite;}
+  @keyframes hop{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  @keyframes wa{0%{transform:translateX(-50px) scaleX(1);}48%{transform:translateX(calc(100vw + 30px)) scaleX(1);}49%{transform:translateX(calc(100vw + 30px)) scaleX(-1);}99%{transform:translateX(-50px) scaleX(-1);}100%{transform:translateX(-50px) scaleX(1);}}
+  .footer{margin-top:40px;text-align:center;font-size:.95rem;color:#558b2f;font-weight:600;opacity:.7;}
+
+  /* ===== CELEBRATION OVERLAY ===== */
+  .cele-overlay{
+    position:fixed;top:0;left:0;width:100%;height:100%;z-index:200;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    pointer-events:none;opacity:0;transition:opacity .5s;
+  }
+  .cele-overlay.show{opacity:1;pointer-events:auto;}
+  .cele-bg{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    background:radial-gradient(ellipse at center,rgba(255,255,200,0.92) 0%,rgba(200,255,200,0.88) 40%,rgba(129,199,132,0.92) 100%);
+  }
+  .cele-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:10px;}
+
+  /* giant pikmin entrance */
+  .giant-pik{
+    width:260px;height:380px;
+    animation:giantEnter .8s cubic-bezier(.17,.67,.29,1.3) forwards, giantBreathe 2s ease-in-out .8s infinite;
+    transform:scale(0) translateY(100px);
+    filter:drop-shadow(0 10px 40px rgba(0,0,0,0.25));
+  }
+  @keyframes giantEnter{
+    0%{transform:scale(0) translateY(100px);opacity:0;}
+    60%{transform:scale(1.15) translateY(-20px);opacity:1;}
+    100%{transform:scale(1) translateY(0);opacity:1;}
+  }
+  @keyframes giantBreathe{
+    0%,100%{transform:scale(1) translateY(0);}
+    50%{transform:scale(1.03) translateY(-8px);}
+  }
+
+  .cele-text{
+    font-size:2.8rem;font-weight:900;
+    background:linear-gradient(90deg,#e53935,#ff9800,#fdd835,#43a047,#1e88e5,#8e24aa,#e53935);
+    background-size:300% 100%;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:textGrad 3s linear infinite, textBounce 1s ease-in-out .6s;
+    text-shadow:none;
+    text-align:center;
+    line-height:1.3;
+  }
+  @keyframes textGrad{0%{background-position:0% 50%;}100%{background-position:300% 50%;}}
+  @keyframes textBounce{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+
+  .cele-sub{
+    font-size:1.3rem;font-weight:700;color:#2e7d32;
+    animation:fadeUp .6s ease .9s both;
+  }
+  @keyframes fadeUp{0%{opacity:0;transform:translateY(20px);}100%{opacity:1;transform:translateY(0);}}
+
+  .cele-close{
+    margin-top:16px;padding:12px 36px;border:none;border-radius:30px;
+    background:linear-gradient(135deg,#43a047,#2e7d32);color:#fff;
+    font-size:1.1rem;font-weight:800;cursor:pointer;
+    box-shadow:0 4px 16px rgba(46,125,50,0.35);
+    animation:fadeUp .6s ease 1.2s both;
+    transition:transform .2s;
+    pointer-events:auto;
+  }
+  .cele-close:hover{transform:scale(1.08);}
+  .cele-close:active{transform:scale(.95);}
+
+  /* firework bursts */
+  #fireworks{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:210;}
+
+  /* emoji rain */
+  .emoji-rain{
+    position:fixed;pointer-events:none;z-index:205;
+    animation:emojiDrop linear forwards;
+    font-size:2rem;
+  }
+  @keyframes emojiDrop{
+    0%{transform:translateY(-40px) rotate(0deg);opacity:1;}
+    80%{opacity:1;}
+    100%{transform:translateY(110vh) rotate(360deg);opacity:0;}
+  }
+</style>
+</head>
+<body>
+<canvas id="cc"></canvas>
+<canvas id="fireworks"></canvas>
+
+<!-- celebration overlay -->
+<div class="cele-overlay" id="celeOverlay">
+  <div class="cele-bg"></div>
+  <div class="cele-content">
+    <svg class="giant-pik" viewBox="0 -16 54 88" xmlns="http://www.w3.org/2000/svg" id="giantPik"></svg>
+    <div class="cele-text" id="celeText">🎉 全部刷好牙了！🎉</div>
+    <div class="cele-sub">皮克敏隊長說：大家都好棒！✨🦷✨</div>
+    <button class="cele-close" id="celeClose">太棒了！繼續加油 🌟</button>
+  </div>
+</div>
+
+<script>
+['🍃','🌿','🍀','🌱','☘️','🍃','🌿','🍀','🌱','☘️','🍃','🌿'].forEach((_,i)=>{
+  const e=document.createElement('div');e.className='bg-leaf';
+  e.textContent=['🍃','🌿','🍀','🌱','☘️'][i%5];
+  e.style.left=(Math.random()*100)+'%';
+  e.style.animationDuration=(13+Math.random()*10)+'s';
+  e.style.animationDelay=(-Math.random()*20)+'s';
+  e.style.fontSize=(1.2+Math.random()*1.4)+'rem';
+  document.body.appendChild(e);
+});
+</script>
+
+<div class="content">
+  <div class="header">
+    <h1>
+      <span style="font-size:inherit;line-height:1.2">🪥 </span>
+      <span class="ch">你</span>
+      <span class="ch">刷</span>
+      <span class="ch">牙</span>
+      <span class="ch">了</span>
+      <span class="ch">嗎</span>
+      <span style="font-size:inherit;line-height:1.2">？🦷</span>
+    </h1>
+    <p class="sub">🌿 養成刷牙好習慣！🌿</p>
+  </div>
+  <div class="counter-wrap"><span class="counter" id="ctr">已完成：0 / 26 人</span></div>
+  <div class="progress-wrap"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+  <div class="grid" id="grid"></div>
+  <div class="footer">🌸 大家一起來刷牙！加油！🌸</div>
+</div>
+<div class="wr" id="wrow"></div>
+
+<script>
+const TOTAL=26, state=Array(TOTAL).fill(false);
+const PT=[
+  {body:'#e5392e',hi:'#ff6659',dk:'#b71c1c',nose:'#e5392e'},
+  {body:'#f9c80e',hi:'#ffde59',dk:'#c79b00',nose:'#f9c80e'},
+  {body:'#2196f3',hi:'#64b5f6',dk:'#1565c0',nose:'#2196f3'},
+  {body:'#7b1fa2',hi:'#ba68c8',dk:'#4a0072',nose:'#7b1fa2'},
+  {body:'#eceff1',hi:'#ffffff',dk:'#b0bec5',nose:'#cfd8dc'},
+  {body:'#f06292',hi:'#f8bbd0',dk:'#c2185b',nose:'#f06292'},
+  {body:'#ff7043',hi:'#ff9e80',dk:'#d84315',nose:'#ff7043'},
+];
+function gc(i){return PT[i%PT.length];}
+
+function pikSVG(i,done){
+  const c=gc(i),ld=(i*.35)%2,isY=i%PT.length===1;
+  const top=done?`
+    <line x1="27" y1="18" x2="27" y2="-2" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+    <g class="la" style="animation-delay:${-ld}s">
+      <circle cx="27" cy="-5" r="5" fill="#ff5722"/>
+      <circle cx="23.5" cy="-7.5" r="2.8" fill="#ff8a65"/>
+      <circle cx="30.5" cy="-7.5" r="2.8" fill="#ff8a65"/>
+      <circle cx="23.5" cy="-2.5" r="2.8" fill="#ff8a65"/>
+      <circle cx="30.5" cy="-2.5" r="2.8" fill="#ff8a65"/>
+      <circle cx="27" cy="-5" r="2.5" fill="#fdd835"/>
+    </g>`:`
+    <line x1="27" y1="18" x2="27" y2="-2" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+    <g class="la" style="animation-delay:${-ld}s">
+      <path d="M27 -2 Q34 -8 40 -2 Q34 2 27 -2Z" fill="#4caf50"/>
+      <path d="M27 -2 Q34 -5 37 -2" stroke="#388e3c" stroke-width=".6" fill="none"/>
+    </g>`;
+  const bodyP=`
+    <path d="M15 32 Q10 44 14 56 Q16 63 22 66 L32 66 Q38 63 40 56 Q44 44 39 32 Q36 20 27 18 Q18 20 15 32Z" fill="${c.body}"/>
+    <path d="M18 30 Q16 40 18 50 Q20 55 24 56 Q22 42 20 32Z" fill="${c.hi}" opacity=".28"/>`;
+  const eY=34;
+  const eyes=done?`
+    <ellipse cx="22" cy="${eY}" rx="4" ry="4.5" fill="#fff" stroke="#333" stroke-width=".5"/>
+    <circle cx="23" cy="${eY+.5}" r="2.5" fill="#111"/>
+    <circle cx="21.5" cy="${eY-1.5}" r="1" fill="#fff" opacity=".9"/>
+    <ellipse cx="32" cy="${eY}" rx="4" ry="4.5" fill="#fff" stroke="#333" stroke-width=".5"/>
+    <circle cx="33" cy="${eY+.5}" r="2.5" fill="#111"/>
+    <circle cx="31.5" cy="${eY-1.5}" r="1" fill="#fff" opacity=".9"/>`:`
+    <ellipse cx="22" cy="${eY+1}" rx="3.5" ry="3" fill="#fff" stroke="#555" stroke-width=".4"/>
+    <circle cx="22" cy="${eY+1.5}" r="2" fill="#222"/>
+    <ellipse cx="32" cy="${eY+1}" rx="3.5" ry="3" fill="#fff" stroke="#555" stroke-width=".4"/>
+    <circle cx="32" cy="${eY+1.5}" r="2" fill="#222"/>`;
+  const nose=`<path d="M27 ${eY+3} Q27 ${eY+6} 27 ${eY+12} Q26 ${eY+13} 27 ${eY+13} Q28 ${eY+13} 27 ${eY+12}" stroke="${c.dk}" stroke-width="3.5" fill="${c.nose}" stroke-linecap="round"/>`;
+  const mouth=done?`<path d="M23 ${eY+8} Q27 ${eY+11} 31 ${eY+8}" stroke="#333" stroke-width="1.2" fill="none" stroke-linecap="round"/>`:`<path d="M24 ${eY+9} Q27 ${eY+7} 30 ${eY+9}" stroke="#666" stroke-width="1" fill="none" stroke-linecap="round"/>`;
+  const ears=isY?`<path d="M14 28 Q6 22 8 16" stroke="${c.dk}" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M40 28 Q48 22 46 16" stroke="${c.dk}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`:'';
+  const cheeks=done?`<ellipse cx="17" cy="${eY+3}" rx="3" ry="1.8" fill="#ff8a80" opacity=".5"/><ellipse cx="37" cy="${eY+3}" rx="3" ry="1.8" fill="#ff8a80" opacity=".5"/>`:'';
+  const arms=`<ellipse cx="12" cy="48" rx="4" ry="2.2" fill="${c.body}" transform="rotate(-30 12 48)"/><ellipse cx="42" cy="48" rx="4" ry="2.2" fill="${c.body}" transform="rotate(30 42 48)"/>`;
+  const feet=`<ellipse cx="22" cy="68" rx="5" ry="2.5" fill="${c.dk}"/><ellipse cx="32" cy="68" rx="5" ry="2.5" fill="${c.dk}"/>`;
+  const sparkle=done?`<text x="4" y="24" font-size="7" opacity=".8">✨</text><text x="40" y="20" font-size="5" opacity=".6">⭐</text>`:'';
+  return `<svg viewBox="0 -12 54 84" xmlns="http://www.w3.org/2000/svg" class="ps">${top}${bodyP}${ears}${eyes}${nose}${mouth}${cheeks}${arms}${feet}${sparkle}</svg>`;
+}
+
+/* Giant celebration pikmin SVG (red leader) */
+function giantPikSVG(){
+  const c={body:'#e5392e',hi:'#ff6659',dk:'#b71c1c',nose:'#e5392e'};
+  return `
+    <line x1="27" y1="18" x2="27" y2="-6" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round"/>
+    <g class="la">
+      <circle cx="27" cy="-9" r="6" fill="#ff5722"/>
+      <circle cx="22.5" cy="-12" r="3.2" fill="#ff8a65"/>
+      <circle cx="31.5" cy="-12" r="3.2" fill="#ff8a65"/>
+      <circle cx="22.5" cy="-6" r="3.2" fill="#ff8a65"/>
+      <circle cx="31.5" cy="-6" r="3.2" fill="#ff8a65"/>
+      <circle cx="27" cy="-9" r="3" fill="#fdd835"/>
+    </g>
+    <path d="M15 32 Q10 44 14 56 Q16 63 22 66 L32 66 Q38 63 40 56 Q44 44 39 32 Q36 20 27 18 Q18 20 15 32Z" fill="${c.body}"/>
+    <path d="M18 30 Q16 40 18 50 Q20 55 24 56 Q22 42 20 32Z" fill="${c.hi}" opacity=".3"/>
+    <!-- happy eyes -->
+    <ellipse cx="22" cy="33" rx="5" ry="5.5" fill="#fff" stroke="#333" stroke-width=".6"/>
+    <circle cx="23.5" cy="33.5" r="3" fill="#111"/>
+    <circle cx="21.5" cy="31.5" r="1.2" fill="#fff" opacity=".9"/>
+    <ellipse cx="32" cy="33" rx="5" ry="5.5" fill="#fff" stroke="#333" stroke-width=".6"/>
+    <circle cx="33.5" cy="33.5" r="3" fill="#111"/>
+    <circle cx="31.5" cy="31.5" r="1.2" fill="#fff" opacity=".9"/>
+    <!-- nose -->
+    <path d="M27 37 Q27 40 27 47 Q26 48 27 48 Q28 48 27 47" stroke="${c.dk}" stroke-width="3.5" fill="${c.nose}" stroke-linecap="round"/>
+    <!-- big smile -->
+    <path d="M21 42 Q27 48 33 42" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <!-- cheeks -->
+    <ellipse cx="16" cy="38" rx="3.5" ry="2.2" fill="#ff8a80" opacity=".6"/>
+    <ellipse cx="38" cy="38" rx="3.5" ry="2.2" fill="#ff8a80" opacity=".6"/>
+    <!-- arms raised up! -->
+    <ellipse cx="8" cy="40" rx="5" ry="2.5" fill="${c.body}" transform="rotate(-60 8 40)"/>
+    <ellipse cx="46" cy="40" rx="5" ry="2.5" fill="${c.body}" transform="rotate(60 46 40)"/>
+    <!-- body -->
+    <ellipse cx="27" cy="62" rx="10" ry="7" fill="${c.body}" opacity=".0"/>
+    <!-- feet -->
+    <ellipse cx="22" cy="68" rx="5.5" ry="3" fill="${c.dk}"/>
+    <ellipse cx="32" cy="68" rx="5.5" ry="3" fill="${c.dk}"/>
+    <!-- sparkles -->
+    <text x="2" y="22" font-size="8">✨</text>
+    <text x="42" y="18" font-size="7">⭐</text>
+    <text x="6" y="60" font-size="6">🌟</text>
+    <text x="40" y="58" font-size="6">💫</text>
+  `;
+}
+document.getElementById('giantPik').innerHTML = giantPikSVG();
+
+/* walkers */
+function miniPik(c,w){
+  return `<svg width="${w}" height="${w*1.5}" viewBox="0 -12 54 84" xmlns="http://www.w3.org/2000/svg">
+    <line x1="27" y1="18" x2="27" y2="-2" stroke="#4caf50" stroke-width="2" stroke-linecap="round"/>
+    <g class="la"><path d="M27 -2 Q34 -8 40 -2 Q34 2 27 -2Z" fill="#4caf50"/></g>
+    <path d="M15 32 Q10 44 14 56 Q16 63 22 66 L32 66 Q38 63 40 56 Q44 44 39 32 Q36 20 27 18 Q18 20 15 32Z" fill="${c.body}"/>
+    <ellipse cx="22" cy="34" rx="3.5" ry="4" fill="#fff"/><circle cx="23" cy="34" r="2.2" fill="#111"/>
+    <ellipse cx="32" cy="34" rx="3.5" ry="4" fill="#fff"/><circle cx="33" cy="34" r="2.2" fill="#111"/>
+    <path d="M27 37 Q27 40 27 46 Q26 47 27 47 Q28 47 27 46" stroke="${c.dk}" stroke-width="3" fill="${c.nose}" stroke-linecap="round"/>
+    <path d="M23 42 Q27 45 31 42" stroke="#333" stroke-width="1" fill="none" stroke-linecap="round"/>
+    <ellipse cx="12" cy="48" rx="3.5" ry="2" fill="${c.body}" transform="rotate(-30 12 48)"/>
+    <ellipse cx="42" cy="48" rx="3.5" ry="2" fill="${c.body}" transform="rotate(30 42 48)"/>
+    <ellipse cx="22" cy="68" rx="4.5" ry="2.2" fill="${c.dk}"/>
+    <ellipse cx="32" cy="68" rx="4.5" ry="2.2" fill="${c.dk}"/>
+  </svg>`;
+}
+const wr=document.getElementById('wrow');
+[0,2,5].forEach((ci,i)=>{const d=document.createElement('div');d.className='wk';d.style.animationDuration=(15+i*5)+'s';d.style.animationDelay=(-i*5)+'s';d.style.bottom=(i*5)+'px';d.innerHTML=miniPik(gc(ci),26+i*4);wr.appendChild(d);});
+
+/* ===== CONFETTI (individual, small) ===== */
+const cvs=document.getElementById('cc'),ctx=cvs.getContext('2d');
+let pcs=[],run=false;
+function rz(){cvs.width=innerWidth;cvs.height=innerHeight;}
+addEventListener('resize',rz);rz();
+const CL=['#e53935','#fdd835','#1e88e5','#43a047','#ab47bc','#ff7043','#f48fb1','#00bcd4'];
+
+function spawn(x,y,n){
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=2+Math.random()*5;
+    pcs.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-4,sz:2.5+Math.random()*4,color:CL[~~(Math.random()*CL.length)],rot:Math.random()*360,rs:(Math.random()-.5)*12,life:1,decay:.015+Math.random()*.01,sh:Math.random()>.5?'r':'c'});}
+  if(!run){run=true;animC();}
+}
+function animC(){
+  ctx.clearRect(0,0,cvs.width,cvs.height);
+  pcs.forEach(p=>{p.x+=p.vx;p.vy+=.14;p.y+=p.vy;p.rot+=p.rs;p.life-=p.decay;});
+  pcs=pcs.filter(p=>p.life>0);
+  pcs.forEach(p=>{ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot*Math.PI/180);ctx.globalAlpha=p.life;ctx.fillStyle=p.color;if(p.sh==='r')ctx.fillRect(-p.sz/2,-p.sz/4,p.sz,p.sz/2);else{ctx.beginPath();ctx.arc(0,0,p.sz/2,0,Math.PI*2);ctx.fill();}ctx.restore();});
+  if(pcs.length)requestAnimationFrame(animC);else{run=false;ctx.clearRect(0,0,cvs.width,cvs.height);}
+}
+
+/* ===== FIREWORKS (celebration only) ===== */
+const fwCvs=document.getElementById('fireworks'),fwCtx=fwCvs.getContext('2d');
+let fwPcs=[],fwRun=false;
+function fwRz(){fwCvs.width=innerWidth;fwCvs.height=innerHeight;}
+addEventListener('resize',fwRz);fwRz();
+const FW_COLORS=[
+  ['#ff1744','#ff5252','#ff8a80','#ffcdd2'],
+  ['#fdd835','#ffee58','#fff9c4','#ff9800'],
+  ['#1e88e5','#42a5f5','#90caf9','#64ffda'],
+  ['#76ff03','#b2ff59','#f4ff81','#69f0ae'],
+  ['#e040fb','#ea80fc','#f8bbd0','#ff80ab'],
+  ['#00e5ff','#18ffff','#84ffff','#a7ffeb'],
+];
+
+function spawnFirework(x,y){
+  const palette=FW_COLORS[~~(Math.random()*FW_COLORS.length)];
+  const count=60+~~(Math.random()*40);
+  for(let i=0;i<count;i++){
+    const a=Math.random()*Math.PI*2, s=1.5+Math.random()*8;
+    fwPcs.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+      sz:2+Math.random()*4,color:palette[~~(Math.random()*palette.length)],
+      life:1,decay:.025+Math.random()*.015,trail:[]});
+  }
+  if(!fwRun){fwRun=true;animFW();}
+}
+function animFW(){
+  fwCtx.fillStyle='rgba(0,0,0,0.08)';
+  fwCtx.fillRect(0,0,fwCvs.width,fwCvs.height);
+  fwPcs.forEach(p=>{
+    p.trail.push({x:p.x,y:p.y,life:p.life});
+    if(p.trail.length>6)p.trail.shift();
+    p.x+=p.vx;p.vy+=.06;p.y+=p.vy;p.vx*=.985;p.vy*=.985;p.life-=p.decay;
+  });
+  fwPcs=fwPcs.filter(p=>p.life>0);
+  fwPcs.forEach(p=>{
+    p.trail.forEach((t,i)=>{
+      fwCtx.globalAlpha=t.life*.3*(i/p.trail.length);
+      fwCtx.fillStyle=p.color;
+      fwCtx.beginPath();fwCtx.arc(t.x,t.y,p.sz*.5,0,Math.PI*2);fwCtx.fill();
+    });
+    fwCtx.globalAlpha=p.life;fwCtx.fillStyle=p.color;
+    fwCtx.beginPath();fwCtx.arc(p.x,p.y,p.sz,0,Math.PI*2);fwCtx.fill();
+    fwCtx.globalAlpha=p.life*.6;fwCtx.fillStyle='#fff';
+    fwCtx.beginPath();fwCtx.arc(p.x,p.y,p.sz*.4,0,Math.PI*2);fwCtx.fill();
+  });
+  if(fwPcs.length>0)requestAnimationFrame(animFW);
+  else{fwRun=false;fwCtx.clearRect(0,0,fwCvs.width,fwCvs.height);}
+}
+
+/* emoji rain */
+function emojiRain(){
+  const emojis=['🌟','⭐','✨','🎉','🎊','🦷','🪥','🌸','🌈','💫','🏆','👏','🥇','💖'];
+  for(let i=0;i<15;i++){
+    setTimeout(()=>{
+      const e=document.createElement('div');
+      e.className='emoji-rain';
+      e.textContent=emojis[~~(Math.random()*emojis.length)];
+      e.style.left=(Math.random()*100)+'%';
+      e.style.animationDuration=(2.5+Math.random()*3)+'s';
+      e.style.fontSize=(1.2+Math.random()*1.8)+'rem';
+      document.body.appendChild(e);
+      setTimeout(()=>e.remove(),6000);
+    },i*80);
+  }
+}
+
+/* ===== CELEBRATION ===== */
+let celebrated=false;
+function triggerCelebration(){
+  if(celebrated)return;
+  celebrated=true;
+  const overlay=document.getElementById('celeOverlay');
+  // Delay so last click confetti plays first
+  setTimeout(()=>{
+    overlay.classList.add('show');
+    // Fireworks sequence
+    for(let i=0;i<4;i++){
+      setTimeout(()=>{
+        spawnFirework(
+          fwCvs.width*.15+Math.random()*fwCvs.width*.7,
+          fwCvs.height*.1+Math.random()*fwCvs.height*.5
+        );
+      },i*150);
+    }
+    // Emoji rain
+    setTimeout(emojiRain,400);
+  },600);
+}
+
+document.getElementById('celeClose').onclick=()=>{
+  document.getElementById('celeOverlay').classList.remove('show');
+};
+
+function updateUI(){
+  const n=state.filter(Boolean).length;
+  document.getElementById('ctr').textContent=`已完成：${n} / ${TOTAL} 人`;
+  document.getElementById('prog').style.width=((n/TOTAL)*100)+'%';
+  if(n===TOTAL) triggerCelebration();
+  if(n<TOTAL){ celebrated=false; document.getElementById('celeOverlay').classList.remove('show'); }
+}
+
+function toggle(i){
+  state[i]=!state[i];
+  const cell=document.querySelector(`.cell[data-i="${i}"]`),done=state[i];
+  cell.querySelector('.pw').innerHTML=pikSVG(i,done)+`<span class="cn">${i+1}</span>`;
+  const s=cell.querySelector('.cs');
+  s.textContent=done?'已經刷牙 ✅':'還沒刷牙';
+  s.className='cs '+(done?'done':'not-done');
+  cell.className='cell '+(done?'done':'not-done');
+  cell.classList.add('bounce');
+  setTimeout(()=>cell.classList.remove('bounce'),500);
+  if(done){const r=cell.getBoundingClientRect();spawn(r.left+r.width/2,r.top+r.height/3,20);}
+  updateUI();
+}
+
+(function init(){
+  const g=document.getElementById('grid');
+  for(let i=0;i<TOTAL;i++){
+    const cell=document.createElement('div');cell.className='cell not-done';cell.dataset.i=i;
+    cell.onclick=()=>toggle(i);
+    const w=document.createElement('div');w.className='pw';
+    w.innerHTML=pikSVG(i,false)+`<span class="cn">${i+1}</span>`;
+    const s=document.createElement('span');s.className='cs not-done';s.textContent='還沒刷牙';
+    cell.appendChild(w);cell.appendChild(s);g.appendChild(cell);
+  }
+  updateUI();
+})();
+</script>
+</body>
+</html>
