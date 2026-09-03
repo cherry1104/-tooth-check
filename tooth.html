@@ -58,8 +58,8 @@
   @media(max-width:520px){.grid{grid-template-columns:repeat(4,1fr);gap:12px 4px;}.header h1{font-size:1.4rem;}.header h1 .zy{font-size:0.5rem;}}
 
   .cell{display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;}
-  .pw{position:relative;width:80px;height:120px;display:flex;align-items:flex-end;justify-content:center;}
-  .ps{width:72px;height:112px;filter:drop-shadow(0 3px 5px rgba(0,0,0,0.18));transition:transform .3s,filter .3s;}
+  .pw{position:relative;width:120px;height:170px;display:flex;align-items:flex-end;justify-content:center;}
+  .ps{width:108px;height:160px;filter:drop-shadow(0 3px 5px rgba(0,0,0,0.18));transition:transform .3s,filter .3s;}
   .cell .ps{animation:sway 2.8s ease-in-out infinite;}
   @keyframes sway{0%,100%{transform:rotate(-2deg) translateY(0);}30%{transform:rotate(1.5deg) translateY(-4px);}60%{transform:rotate(-1.5deg) translateY(-1px);}}
   .cell:nth-child(2n) .ps{animation-delay:-.4s;}
@@ -72,7 +72,7 @@
   .cell.not-done .ps{opacity:.45;filter:saturate(.2) drop-shadow(0 3px 5px rgba(0,0,0,0.1));}
   .cell.not-done:hover .ps{opacity:.65;filter:saturate(.4) drop-shadow(0 4px 10px rgba(0,0,0,0.18));}
   .cell.done .ps{opacity:1;}
-  .cn{font-size:.72rem;font-weight:800;color:#fff;background:rgba(0,0,0,.2);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:2;}
+  .cn{ font-size:.9rem;font-weight:800;color:#fff;background:rgba(0,0,0,.2);border-radius:50%; width:26px;height:26px;display:flex;align-items:center;justify-content:center;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:2;}
   .cs{font-size:.75rem;font-weight:700;margin-top:1px;text-align:center;transition:color .3s;}
   .cs.not-done{color:#c62828;}.cs.done{color:#2e7d32;}
   @keyframes bounce{0%{transform:scale(1);}25%{transform:scale(1.18) translateY(-14px);}50%{transform:scale(.92) translateY(0);}75%{transform:scale(1.05) translateY(-4px);}100%{transform:scale(1) translateY(0);}}
