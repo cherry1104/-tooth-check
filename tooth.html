@@ -20,7 +20,7 @@
     8%{opacity:0.14;}92%{opacity:0.14;}
     100%{transform:translateY(105vh) rotate(360deg);opacity:0;}
   }
-  .content{position:relative;z-index:1;width:100%;max-width:1050px;}
+  .content{position:relative;z-index:1;width:100%;max-width:1200px;}
   .header{text-align:center;margin-bottom:8px;}
   .header h1{
     font-size:2.6rem;font-weight:900;color:#2e7d32;
@@ -53,9 +53,11 @@
     border-radius:20px;transition:width .5s cubic-bezier(.4,0,.2,1);position:relative;
   }
   .progress-fill::after{content:'🌱';position:absolute;right:-6px;top:-5px;font-size:1.2rem;}
-  .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:16px 10px;width:100%;}
+  .grid{display:grid;grid-template-columns:repeat(8,1fr);gap:20px 14px;width:100%;}
+  @media(max-width:1050px){.grid{grid-template-columns:repeat(6,1fr);gap:18px 10px;}}
   @media(max-width:880px){.grid{grid-template-columns:repeat(5,1fr);gap:14px 8px;}.header h1{font-size:2rem;}}
-  @media(max-width:520px){.grid{grid-template-columns:repeat(4,1fr);gap:12px 4px;}.header h1{font-size:1.4rem;}.header h1 .zy{font-size:0.5rem;}}
+  @media(max-width:620px){.grid{grid-template-columns:repeat(4,1fr);gap:12px 4px;}.header h1{font-size:1.4rem;}.header h1 .zy{font-size:0.5rem;}}
+  @media(max-width:480px){.grid{grid-template-columns:repeat(3,1fr);gap:10px 4px;}.pw{width:100px;height:145px;}.ps{width:90px;height:135px;}.cn{font-size:.8rem;width:22px;height:22px;}}
 
   .cell{display:flex;flex-direction:column;align-items:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;position:relative;}
   .pw{position:relative;width:120px;height:170px;display:flex;align-items:flex-end;justify-content:center;}
@@ -72,8 +74,8 @@
   .cell.not-done .ps{opacity:.45;filter:saturate(.2) drop-shadow(0 3px 5px rgba(0,0,0,0.1));}
   .cell.not-done:hover .ps{opacity:.65;filter:saturate(.4) drop-shadow(0 4px 10px rgba(0,0,0,0.18));}
   .cell.done .ps{opacity:1;}
-  .cn{ font-size:.9rem;font-weight:800;color:#fff;background:rgba(0,0,0,.2);border-radius:50%; width:26px;height:26px;display:flex;align-items:center;justify-content:center;position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:2;}
-  .cs{font-size:.75rem;font-weight:700;margin-top:1px;text-align:center;transition:color .3s;}
+  .cn{font-size:.9rem;font-weight:800;color:#fff;background:rgba(0,0,0,.2);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:2;}
+  .cs{font-size:.9rem;font-weight:700;margin-top:4px;text-align:center;transition:color .3s;}
   .cs.not-done{color:#c62828;}.cs.done{color:#2e7d32;}
   @keyframes bounce{0%{transform:scale(1);}25%{transform:scale(1.18) translateY(-14px);}50%{transform:scale(.92) translateY(0);}75%{transform:scale(1.05) translateY(-4px);}100%{transform:scale(1) translateY(0);}}
   .cell.bounce .ps{animation:bounce .5s ease !important;}
@@ -222,8 +224,16 @@ const PT=[
   {body:'#eceff1',hi:'#ffffff',dk:'#b0bec5',nose:'#cfd8dc'},
   {body:'#f06292',hi:'#f8bbd0',dk:'#c2185b',nose:'#f06292'},
   {body:'#ff7043',hi:'#ff9e80',dk:'#d84315',nose:'#ff7043'},
+  {body:'#26a69a',hi:'#64d8cb',dk:'#00796b',nose:'#26a69a'},
+  {body:'#5c6bc0',hi:'#8e99f3',dk:'#26418f',nose:'#5c6bc0'},
+  {body:'#8d6e63',hi:'#be9c91',dk:'#5d4037',nose:'#8d6e63'},
+  {body:'#66bb6a',hi:'#98ee99',dk:'#338a3e',nose:'#66bb6a'},
+  {body:'#ffa726',hi:'#ffd95b',dk:'#c77800',nose:'#ffa726'},
 ];
-function gc(i){return PT[i%PT.length];}
+// 每次重整頁面隨機分配顏色給每個人
+const colorMap=Array.from({length:TOTAL},(_,i)=>i);
+for(let i=colorMap.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[colorMap[i],colorMap[j]]=[colorMap[j],colorMap[i]];}
+function gc(i){return PT[colorMap[i]%PT.length];}
 
 function pikSVG(i,done){
   const c=gc(i),ld=(i*.35)%2,isY=i%PT.length===1;
@@ -418,6 +428,62 @@ function emojiRain(){
   }
 }
 
+/* ===== SOUND EFFECTS (Web Audio API) ===== */
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let audioCtx;
+function ensureAudio(){if(!audioCtx)audioCtx=new AudioCtx();}
+
+// 刷牙完成：清脆的「叮！」
+function playDing(){
+  ensureAudio();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='sine';o.frequency.setValueAtTime(880,audioCtx.currentTime);
+  o.frequency.setValueAtTime(1318,audioCtx.currentTime+0.08);
+  g.gain.setValueAtTime(0.25,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.35);
+  o.start();o.stop(audioCtx.currentTime+0.35);
+}
+
+// 取消：輕輕的「咚」
+function playPop(){
+  ensureAudio();
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.connect(g);g.connect(audioCtx.destination);
+  o.type='sine';o.frequency.setValueAtTime(520,audioCtx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(200,audioCtx.currentTime+0.15);
+  g.gain.setValueAtTime(0.18,audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.2);
+  o.start();o.stop(audioCtx.currentTime+0.2);
+}
+
+// 全部完成：歡慶旋律 🎵
+function playFanfare(){
+  ensureAudio();
+  // 輕快上行 → 小跳躍 → 結尾長音
+  const notes=[523,587,659,784,659,784,880,784,880,1047,1175,1047];
+  const times=[0,0.09,0.18,0.27,0.40,0.49,0.58,0.71,0.80,0.93,1.06,1.22];
+  const durs =[0.09,0.09,0.09,0.13,0.09,0.09,0.13,0.09,0.13,0.13,0.16,0.5];
+  function playNote(freq,t,dur,type,vol){
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type=type;
+    o.frequency.setValueAtTime(freq,t);
+    g.gain.setValueAtTime(vol,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur+0.18);
+    o.start(t);o.stop(t+dur+0.18);
+  }
+  const t0=audioCtx.currentTime;
+  notes.forEach((freq,i)=>{
+    playNote(freq,t0+times[i],durs[i],'triangle',0.22);
+    playNote(freq*2,t0+times[i],durs[i],'sine',0.06);
+  });
+  // 最後加一個和弦收尾
+  [1047,1319,1568].forEach(f=>{
+    playNote(f,t0+1.45,0.6,'triangle',0.15);
+  });
+}
+
 /* ===== CELEBRATION ===== */
 let celebrated=false;
 function triggerCelebration(){
@@ -427,6 +493,7 @@ function triggerCelebration(){
   // Delay so last click confetti plays first
   setTimeout(()=>{
     overlay.classList.add('show');
+    playFanfare();
     // Fireworks sequence
     for(let i=0;i<4;i++){
       setTimeout(()=>{
@@ -463,7 +530,7 @@ function toggle(i){
   cell.className='cell '+(done?'done':'not-done');
   cell.classList.add('bounce');
   setTimeout(()=>cell.classList.remove('bounce'),500);
-  if(done){const r=cell.getBoundingClientRect();spawn(r.left+r.width/2,r.top+r.height/3,20);}
+  if(done){const r=cell.getBoundingClientRect();spawn(r.left+r.width/2,r.top+r.height/3,20);playDing();}else{playPop();}
   updateUI();
 }
 
